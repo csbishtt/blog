@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+.feed-card{
+border:0;
+border-radius:16px;
+transition:0.25s ease;
+}
+
+.feed-card:hover{
+transform:translateY(-4px);
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.feed-title{
+font-weight:700;
+color:#222;
+}
+
+.feed-meta{
+font-size:13px;
+color:#888;
+}
+
+.like-btn{
+border-radius:20px;
+padding:4px 14px;
+}
+
+.trending-card{
+border-radius:16px;
+border:0;
+}
+
+.trending-item{
+padding:8px;
+border-radius:10px;
+transition:.2s;
+}
+
+.trending-item:hover{
+background:#f5f7ff;
+}
+
+.feed-header{
+background:linear-gradient(90deg,#4f46e5,#7c3aed);
+color:white;
+padding:12px 18px;
+border-radius:12px;
+margin-bottom:15px;
+}
+</style>
+
+<div class="row">
+
+<!-- FEED -->
+<div class="col-md-8">
+
+<div class="feed-header">
+<h4 class="mb-0">🔥 Your Feed</h4>
+</div>
+
+{% for post in posts %}
+
+<div class="card mb-4 shadow-sm feed-card">
+<div class="card-body">
+
+<!-- TITLE -->
+<h4 class="feed-title">
+<a href="{% url 'post_detail' post.slug %}" class="text-decoration-none">
+{{ post.title }}
+</a>
+</h4>
+
+<!-- CONTENT -->
+<p class="text-muted mb-2">
+{{ post.content|truncatewords:25 }}
+</p>
+
+<!-- META -->
+<div class="feed-meta mb-2">
+Posted by {{ post.author }} • {{ post.created_at|timesince }} ago
+</div>
+
+<!-- ACTIONS -->
+<div class="d-flex justify-content-between align-items-center">
+
+<div>
+
+<button class="btn btn-sm btn-outline-primary like-btn"
+data-id="{{ post.id }}">
+❤ Like
+</button>
+
+<span class="ms-2 fw-bold" id="like-count-{{ post.id }}">
+{{ post.like_set.count }}
+</span>
+
+</div>
+
+<div class="text-muted small">
+👁 {{ post.views }} views
+</div>
+
+</div>
+
+</div>
+</div>
+
+{% empty %}
+<div class="card p-4 text-center shadow-sm">
+No posts available
+</div>
+{% endfor %}
+
+</div>
+
+<!-- SIDEBAR -->
+<div class="col-md-4">
+
+<div class="card shadow-sm mb-3 trending-card">
+<div class="card-body">
+
+<h5 class="mb-3">🔥 Trending</h5>
+
+{% for t in trending_posts %}
+<div class="trending-item">
+<a href="{% url 'post_detail' t.slug %}"
+class="fw-semibold text-decoration-none">
+{{ t.title|truncatewords:6 }}
+</a>
+<br>
+<small class="text-muted">👁 {{ t.views }} views</small>
+</div>
+{% endfor %}
+
+</div>
+</div>
+
+</div>
+
+</div>
+
+<!-- AJAX LIKE SCRIPT -->
+<script>
+function getCSRFToken(){
+return document.querySelector('[name=csrfmiddlewaretoken]')?.value 
+|| "{{ csrf_token }}";
+}
+
+document.addEventListener("click", async function(e){
+
+const btn = e.target.closest(".like-btn");
+if(!btn) return;
+
+const postId = btn.dataset.id;
+const counter = document.getElementById(`like-count-${postId}`);
+
+btn.disabled = true;
+btn.innerHTML = "⏳";
+
+try{
+
+const res = await fetch(`/like/${postId}/`,{
+method:"POST",
+headers:{
+"X-CSRFToken": getCSRFToken(),
+"Content-Type":"application/json"
+}
+});
+
+const data = await res.json();
+
+counter.innerText = data.like_count;
+btn.innerHTML = "❤ Like";
+
+}catch(err){
+btn.innerHTML = "⚠ Error";
+}
+
+btn.disabled = false;
+
+});
+</script>
+
+{% endblock %}

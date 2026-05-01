@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Blog</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark">
+<div class="container">
+
+<a class="navbar-brand" href="{% url 'home' %}">Blog</a>
+
+<div>
+
+
+
+{% if user.is_authenticated %}
+
+<!-- USER NAME DISPLAY (SAFE FALLBACK) -->
+<span class="text-white mx-2">
+    {{ user.get_full_name|default:user.username }}
+</span>
+
+<!-- OPTIONAL LINKS -->
+<a href="{% url 'dashboard' %}" class="btn btn-info">Dashboard</a>
+
+<a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+<a href="{% url 'create_post' %}" class="btn btn-light">Create</a>
+{% else %}
+
+<a href="{% url 'login' %}" class="btn btn-success">Login</a>
+<a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+
+{% endif %}
+
+</div>
+
+</div>
+</nav>
+
+<div class="container mt-4">
+{% block content %}
+{% endblock %}
+</div>
+
+</body>
+</html>
